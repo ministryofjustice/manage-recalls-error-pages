@@ -1,8 +1,10 @@
 #!/bin/bash
 
-IMAGE=cloud-platform-custom-error-pages:0.6
+echo "Building docker image..."
+docker build -t errorpage .
 
+echo "Running application..."
 docker run --rm \
   --name errorpage \
-  -p 8000:8080 \
-  -it ${IMAGE}
+  -p 8080:8080 \
+  -it errorpage

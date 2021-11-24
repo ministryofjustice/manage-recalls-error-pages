@@ -1,0 +1,5 @@
+---
+# Per environment values which override defaults in ppud-replacement-dashboards/values.yaml
+
+generic-service: {}
+generic-prometheus-alerts: {}

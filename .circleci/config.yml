@@ -17,6 +17,9 @@ workflows:
   version: 2
   build-test-and-deploy:
     jobs:
+      - hmpps/helm_lint:
+          name: helm_lint
+
       - hmpps/build_docker:
           name: build_docker
           publish: false
@@ -38,6 +41,7 @@ workflows:
       - hmpps/publish_docker:
           name: publish_docker
           requires:
+            - helm_lint
             - trivy_scan
           filters:
             branches:

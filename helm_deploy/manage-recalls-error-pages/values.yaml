@@ -1,0 +1,27 @@
+---
+generic-service:
+  replicaCount: 2
+
+  image:
+    repository: quay.io/hmpps/manage-recalls-error-pages
+    tag: app_version
+    port: 8080
+
+  ingress:
+    enabled: false
+
+  service:
+    enabled: true
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+
+  readinessProbe:
+    httpGet:
+      path: /healthz
+
+generic-prometheus-alerts:
+  targetApplication: manage-recalls-error-pages
+  ingressAlertsEnabled: false
+  dashboardsEnabled: false

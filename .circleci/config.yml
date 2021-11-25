@@ -1,0 +1,105 @@
+version: 2.1
+
+orbs:
+  hmpps: ministryofjustice/hmpps@3.11
+  slack: circleci/slack@4.4.2
+  node: circleci/node@4.5.1
+
+parameters:
+  alerts-slack-channel:
+    type: string
+    default: ppud-replacement-devs
+  releases-slack-channel:
+    type: string
+    default: ppud-replacement-releases
+
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - hmpps/helm_lint:
+          name: helm_lint
+
+      - hmpps/build_docker:
+          name: build_docker
+          publish: false
+          persist_container_image: true
+          additional_docker_build_args: --build-arg BUILD_URL=${CIRCLE_BUILD_URL}
+
+      - hmpps/trivy_pipeline_scan:
+          name: trivy_scan_low_medium_cves
+          fail_build: false
+          cve_severities_to_check: UNKNOWN,LOW,MEDIUM
+          requires:
+            - build_docker
+
+      - hmpps/trivy_pipeline_scan:
+          name: trivy_scan
+          requires:
+            - build_docker
+
+      - hmpps/publish_docker:
+          name: publish_docker
+          requires:
+            - helm_lint
+            - trivy_scan
+          filters:
+            branches:
+              only:
+                - main
+
+      - hmpps/deploy_env:
+          name: deploy_dev
+          env: dev
+          context:
+            - hmpps-common-vars
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - publish_docker
+
+      - request-preprod-approval:
+          type: approval
+          requires:
+            - deploy_dev
+
+      - hmpps/deploy_env:
+          name: deploy_preprod
+          env: preprod
+          context:
+            - hmpps-common-vars
+            - manage-recalls-ui-preprod
+          requires:
+            - request-preprod-approval
+
+      - request-prod-approval:
+          type: approval
+          requires:
+            - deploy_preprod
+
+      - hmpps/deploy_env:
+          name: deploy_prod
+          env: prod
+          context:
+            - hmpps-common-vars
+            - manage-recalls-ui-prod
+          requires:
+            - request-prod-approval
+          slack_notification: true
+          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
+
+  security:
+    triggers:
+      - schedule:
+          cron: "28 6 * * 1-5"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - hmpps/trivy_latest_scan:
+          context:
+            - hmpps-common-vars
+          slack_channel: << pipeline.parameters.alerts-slack-channel >>

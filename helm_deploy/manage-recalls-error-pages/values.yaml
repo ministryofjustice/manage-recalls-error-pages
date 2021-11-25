@@ -1,5 +1,7 @@
 ---
 generic-service:
+  nameOverride: manage-recalls-error-pages
+
   replicaCount: 2
 
   image:

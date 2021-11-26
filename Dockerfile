@@ -1,10 +1,6 @@
 FROM golang:1.12.7-alpine3.10 AS builder
 
-RUN \
-    apk add --no-cache \
-        ca-certificates \
-        gcc \
-        git
+RUN apk add --no-cache ca-certificates gcc git
 
 WORKDIR /go/src/app
 

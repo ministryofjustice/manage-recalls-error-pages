@@ -4,6 +4,7 @@ orbs:
   hmpps: ministryofjustice/hmpps@3.11
   slack: circleci/slack@4.4.2
   node: circleci/node@4.5.1
+  mem: circleci/rememborb@0.0.1
 
 parameters:
   alerts-slack-channel:
@@ -12,6 +13,45 @@ parameters:
   releases-slack-channel:
     type: string
     default: ppud-replacement-releases
+
+jobs:
+  deploy_to_manage_recalls:
+    executor: hmpps/default_small
+    parameters:
+      env:
+        type: string
+    steps:
+      - checkout
+      - hmpps/k8s_setup
+      - hmpps/install_helm
+      - hmpps/install_aws_cli
+      - mem/recall:
+          env_var: APP_VERSION
+      - deploy:
+          name: Deploy to << parameters.env >>
+          working_directory: helm_deploy
+          environment:
+            RELEASE_NAME: manage-recalls-error-pages
+            CHART_NAME: manage-recalls-error-pages
+            ENV_NAME: << parameters.env >>
+          command: |
+              # this is a hack to allow seeing the actual app version in the helm release metadata
+              sed -i "s/appVersion:.*/appVersion: \"${APP_VERSION}\"/g" "${CHART_NAME}/Chart.yaml"
+
+              # Install/update any chart dependencies.
+              helm dependency update "${CHART_NAME}"
+
+              HELM_ARGS=(--wait \
+                --install \
+                --reset-values \
+                --timeout 5m \
+                --history-max 10 \
+                --values "values-${ENV_NAME}.yaml" \
+                --set "generic-service.image.tag=${APP_VERSION}")
+
+              helm \
+                --namespace manage-recalls-<< parameters.env >> \
+                upgrade "${RELEASE_NAME}" "${CHART_NAME}" "${HELM_ARGS[@]}"
 
 workflows:
   version: 2
@@ -60,6 +100,18 @@ workflows:
           requires:
             - publish_docker
 
+      - deploy_to_manage_recalls:
+          name: deploy_to_manage_recalls_dev
+          env: dev
+          context:
+            - hmpps-common-vars
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - publish_docker
+
       - request-preprod-approval:
           type: approval
           requires:
@@ -70,7 +122,7 @@ workflows:
           env: preprod
           context:
             - hmpps-common-vars
-            - manage-recalls-ui-preprod
+            - manage-recalls-error-pages-preprod
           requires:
             - request-preprod-approval
 
@@ -84,7 +136,7 @@ workflows:
           env: prod
           context:
             - hmpps-common-vars
-            - manage-recalls-ui-prod
+            - manage-recalls-error-pages-prod
           requires:
             - request-prod-approval
           slack_notification: true

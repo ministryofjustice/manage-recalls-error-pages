@@ -13,7 +13,7 @@ version.BuildInfo{Version:"v3.0.1", GitCommit:"7c22ef9ce89e0ebeb7125ba2ebf7d421f
 
 ### Useful helm (v3) commands:
 
-__Test chart template rendering:__
+**Test chart template rendering:**
 
 This will out the fully rendered kubernetes resources in raw yaml.
 
@@ -21,19 +21,19 @@ This will out the fully rendered kubernetes resources in raw yaml.
 helm template [path to chart] --values=values-dev.yaml
 ```
 
-__List releases:__
+**List releases:**
 
 ```sh
 helm --namespace [namespace] list
 ```
 
-__List current and previously installed application versions:__
+**List current and previously installed application versions:**
 
 ```sh
 helm --namespace [namespace] history [release name]
 ```
 
-__Rollback to previous version:__
+**Rollback to previous version:**
 
 ```sh
 helm --namespace [namespace] rollback [release name] [revision number] --wait
@@ -41,7 +41,7 @@ helm --namespace [namespace] rollback [release name] [revision number] --wait
 
 Note: replace _revision number_ with one from listed in the `history` command)
 
-__Example deploy command:__
+**Example deploy command:**
 
 The following example is `--dry-run` mode - which will allow for testing. CircleCI normally runs this command with actual secret values (from AWS secret manager), and also updated the chart's application version to match the release version:
 
@@ -70,7 +70,8 @@ The name of the kubernetes secret where the certificate is stored is used as a v
 
 ### Kubernetes secrets
 
-You will need to create a secret for your app in kubernetes.  It should contain the following:
+You will need to create a secret for your app in kubernetes. It should contain the following:
+
 - APPINSIGHTS_INSTRUMENTATIONKEY - Can be found from the relevant Application Insights instance for your environment in azure.portal.com
 - API_CLIENT_ID - Created add added by the HMPPS tech team when they create the ClientId for your app
 - API_CLIENT_SECRET - Created add added by the HMPPS tech team when they create the ClientId for your app
@@ -79,7 +80,8 @@ You will need to create a secret for your app in kubernetes.  It should contain 
 - SESSION_SECRET
 
 e.g.
+
 ```
-kubectl create secret manage-recalls-ui --from-literal=APPINSIGHTS_INSTRUMENTATIONKEY=00000000-0000-0000-0000-000000000000
-kubectl edit secret manage-recalls-ui
+kubectl create secret manage-recalls-error-pages --from-literal=APPINSIGHTS_INSTRUMENTATIONKEY=00000000-0000-0000-0000-000000000000
+kubectl edit secret manage-recalls-error-pages
 ```

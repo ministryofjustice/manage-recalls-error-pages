@@ -20,9 +20,12 @@ jobs:
     parameters:
       env:
         type: string
+    environment:
+      KUBE_NAMESPACE_OVERRIDE: manage-recalls-<< parameters.env >>
     steps:
       - checkout
-      - hmpps/k8s_setup
+      - hmpps/k8s_setup:
+          kube-namespace: KUBE_NAMESPACE_OVERRIDE
       - hmpps/install_helm
       - hmpps/install_aws_cli
       - mem/recall:
@@ -35,6 +38,9 @@ jobs:
             CHART_NAME: manage-recalls-error-pages
             ENV_NAME: << parameters.env >>
           command: |
+              # Show the context in use - just to check the namespace is correct
+              kubectl config get-contexts
+
               # this is a hack to allow seeing the actual app version in the helm release metadata
               sed -i "s/appVersion:.*/appVersion: \"${APP_VERSION}\"/g" "${CHART_NAME}/Chart.yaml"
 
@@ -49,9 +55,7 @@ jobs:
                 --values "values-${ENV_NAME}.yaml" \
                 --set "generic-service.image.tag=${APP_VERSION}")
 
-              helm \
-                --namespace manage-recalls-<< parameters.env >> \
-                upgrade "${RELEASE_NAME}" "${CHART_NAME}" "${HELM_ARGS[@]}"
+              helm upgrade "${RELEASE_NAME}" "${CHART_NAME}" "${HELM_ARGS[@]}"
 
 workflows:
   version: 2

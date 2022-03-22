@@ -1,5 +1,7 @@
 # manage-recalls-error-pages
 
+[![repo standards badge](https://img.shields.io/badge/dynamic/json?color=blue&style=for-the-badge&logo=github&label=MoJ%20Compliant&query=%24.data%5B%3F%28%40.name%20%3D%3D%20%22manage-recalls-error-pages%22%29%5D.status&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fgithub_repositories)](https://operations-engineering-reports.cloud-platform.service.justice.gov.uk/github_repositories#manage-recalls-error-pages "Link to report")
+
 This repo creates a docker image containing custom HTTP error pages, for the `manage-recalls` service to be used as per these [instructions].
 
 A default-backend is served by nginx as a fall-back. This is typically when the sub-domain, for example `https://wrongdomain.cloud-platform.service.justice.gov.uk/`, isn't recognized. Otherwise, the default nginx page would show, which doesn't look professional.

@@ -48,58 +48,58 @@ workflows:
               only:
                 - main
 
-      - hmpps/deploy_env:
-          name: deploy_dev
-          env: dev
-          context:
-            - hmpps-common-vars
-          filters:
-            branches:
-              only:
-                - main
-          requires:
-            - publish_docker
+  #     - hmpps/deploy_env:
+  #         name: deploy_dev
+  #         env: dev
+  #         context:
+  #           - hmpps-common-vars
+  #         filters:
+  #           branches:
+  #             only:
+  #               - main
+  #         requires:
+  #           - publish_docker
 
-      - request-preprod-approval:
-          type: approval
-          requires:
-            - deploy_dev
+  #     - request-preprod-approval:
+  #         type: approval
+  #         requires:
+  #           - deploy_dev
 
-      - hmpps/deploy_env:
-          name: deploy_preprod
-          env: preprod
-          context:
-            - hmpps-common-vars
-            - manage-recalls-error-pages-preprod
-          requires:
-            - request-preprod-approval
+  #     - hmpps/deploy_env:
+  #         name: deploy_preprod
+  #         env: preprod
+  #         context:
+  #           - hmpps-common-vars
+  #           - manage-recalls-error-pages-preprod
+  #         requires:
+  #           - request-preprod-approval
 
-      - request-prod-approval:
-          type: approval
-          requires:
-            - deploy_preprod
+  #     - request-prod-approval:
+  #         type: approval
+  #         requires:
+  #           - deploy_preprod
 
-      - hmpps/deploy_env:
-          name: deploy_prod
-          env: prod
-          context:
-            - hmpps-common-vars
-            - manage-recalls-error-pages-prod
-          requires:
-            - request-prod-approval
-          slack_notification: true
-          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
+  #     - hmpps/deploy_env:
+  #         name: deploy_prod
+  #         env: prod
+  #         context:
+  #           - hmpps-common-vars
+  #           - manage-recalls-error-pages-prod
+  #         requires:
+  #           - request-prod-approval
+  #         slack_notification: true
+  #         slack_channel_name: << pipeline.parameters.releases-slack-channel >>
 
-  security:
-    triggers:
-      - schedule:
-          cron: "28 6 * * 1-5"
-          filters:
-            branches:
-              only:
-                - main
-    jobs:
-      - hmpps/trivy_latest_scan:
-          context:
-            - hmpps-common-vars
-          slack_channel: << pipeline.parameters.alerts-slack-channel >>
+  # security:
+  #   triggers:
+  #     - schedule:
+  #         cron: "28 6 * * 1-5"
+  #         filters:
+  #           branches:
+  #             only:
+  #               - main
+  #   jobs:
+  #     - hmpps/trivy_latest_scan:
+  #         context:
+  #           - hmpps-common-vars
+  #         slack_channel: << pipeline.parameters.alerts-slack-channel >>
